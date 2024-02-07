@@ -33,4 +33,13 @@
         }
     }
     </table>
+
+    <p>
+        b) Write a program that will generate a PNG (image) file using the data from the REST endpoint.
+        Pie-chart will be showing a percentage of the total time worked by an employee.
+    </p>
+
+    <form asp-controller="Employee" asp-action="GeneratePieChart">
+        <button class="btn btn-success" type="submit"><i class="bi bi-download"></i> Download pie chart</button>
+    </form>
 </div>

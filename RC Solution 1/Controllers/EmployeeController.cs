@@ -21,6 +21,61 @@ namespace RC_Solution_1.Controllers
         }
 
         /// <summary>
+        /// Generates a pie chart of the total time worked by each employee
+        /// And sends the image as a response
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult GeneratePieChart()
+        {
+            List<EmployeeModel>? employees = GroupRecordsByEmployeeName(GetAllRecords());
+
+            var bitmap = new Bitmap(900, 900);
+            var graphics = Graphics.FromImage(bitmap);
+
+            // Isolate data
+            var names = employees.Select(e => e.EmployeeName).ToArray();
+            var hoursWorked = employees.Select(e => e.TotalTimeWorkedHours).ToArray();
+            var totalHoursWorked = hoursWorked.Sum();
+
+            // Generate colors
+            var colors = new Color[names.Length];
+            var random = new Random();
+            for (int i = 0; i < names.Length; i++)
+            {
+                colors[i] = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+            }
+
+            // Draw pie chart
+            var startAngle = 0.0f;
+
+            // Add background
+            graphics.FillRectangle(new SolidBrush(Color.White), 0, 0, 1000, 1000);
+
+            for (var i = 0; i < hoursWorked.Length; i++)
+            {
+                // Data points
+                var sweepAngle = Convert.ToSingle((hoursWorked[i] / totalHoursWorked) * 360.0f);
+                graphics.FillPie(new SolidBrush(colors[i]), 250, 250, 400, 400, startAngle, sweepAngle);
+                startAngle += sweepAngle;
+
+                // Legend
+                var percentage = (hoursWorked[i] / totalHoursWorked) * 100;
+                graphics.FillRectangle(new SolidBrush(colors[i]), 100, 100 + (i * 20), 10, 10);
+                graphics.DrawString($"{names[i]}: {percentage:0.00}%", new Font("Arial", 12), new SolidBrush(Color.Black), 120, 100 + (i * 20));
+            }
+
+            // Save image
+            var stream = new MemoryStream();
+            bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            stream.Position = 0;
+
+            graphics.Dispose();
+
+            return File(stream, "image/png", "work_hours.png");
+        }
+
+
+        /// <summary>
         /// Fetch all records from the API
         /// </summary>
         /// <returns>Full list of employee records</returns>
